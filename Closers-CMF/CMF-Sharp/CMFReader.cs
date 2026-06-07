@@ -80,7 +80,7 @@ namespace Leayal.Closers.CMF
             {
                 // Let's extract encrypted content as raw data, too.
                 // Because I don't know how to decrypt.
-                this.currentStream = new EntryStream(this.sourceArchive.BaseStream, entrydataoffset, Entry.UnpackedSize, true);
+                this.currentStream = new EntryStream(this.sourceArchive.BaseStream, entrydataoffset, this.Entry.IsCompressed ? this.Entry.CompressedSize : this.Entry.UnpackedSize, true);
             }
             return this.currentStream;
         }

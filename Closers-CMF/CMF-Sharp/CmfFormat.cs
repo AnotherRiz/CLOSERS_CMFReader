@@ -33,6 +33,8 @@ namespace Leayal.Closers.CMF
                         return true;
                     else if (string.Equals(ext, "fx", System.StringComparison.OrdinalIgnoreCase))
                         return true;
+                    else if (string.Equals(ext, "ntf", System.StringComparison.OrdinalIgnoreCase))
+                        return true;
                 }
             }
             return false;
