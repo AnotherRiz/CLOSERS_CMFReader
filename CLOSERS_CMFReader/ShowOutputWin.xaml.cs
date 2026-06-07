@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -12,6 +12,9 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using CLOSERS_CMFReader.WinForms;
 using CLOSERS_CMFReader.Classes;
+using System.IO;
+using System.Threading.Tasks;
+using Path = System.IO.Path;
 
 namespace CLOSERS_CMFReader
 {
@@ -20,7 +23,6 @@ namespace CLOSERS_CMFReader
     /// </summary>
     public partial class ShowOutputWin : Window
     {
-        private CMFFile archive;
         private List<string> Unpack_file;
         private List<string> UnpackSelect_file = new List<string>();
         private string cmf_motion;
@@ -74,61 +76,136 @@ namespace CLOSERS_CMFReader
             this.Close();
         }
 
-        private void OK_btn_Click(object sender, RoutedEventArgs e)
+        private async void OK_btn_Click(object sender, RoutedEventArgs e)
         {
             Cancle_btn.IsEnabled = false;
             OK_btn.IsEnabled = false;
-            if (PathTextbox.Text == "")
+            Close_btn.IsEnabled = false;
+            if (string.IsNullOrEmpty(PathTextbox.Text))
             {
                 MessageBox.Show("Please input destination path.");
+                Cancle_btn.IsEnabled = true;
+                OK_btn.IsEnabled = true;
+                Close_btn.IsEnabled = true;
             }
             else
             {
-                if (cmf_motion == "Unpacking")
-                {
-                    foreach (string output_file in Unpack_file)
-                    {
-                        archive = new CMFFile(output_file);
-                        archive.Closed += Archive_Closed;
-                        archive.BeginRead();
-                        for (int i = 0; i < archive.FileCount; i++)
-                        {
-                            archive.ExtractEntry(archive.Entries[i], PathTextbox.Text + "/" + new Classes.File(archive.Entries[i]).Name);
-                            ShowProcessingText.AppendText((new Classes.File(archive.Entries[i]).Name) + "......finished" + System.Environment.NewLine);
-                        }
-                        processbar_processing();
-                        System.Threading.Thread.Sleep(10);
-                    }
-                }
-                else if (cmf_motion == "UnpackingSelect")
-                {
-                    string predata_file = "";
-                    foreach (string output_file in Unpack_file)
-                    {
-                        string[] data_file = null;
-                        data_file = output_file.Split(',');
-                        if (data_file[0] == predata_file)
-                        {
-                            archive.ExtractEntry(this.archive[data_file[1]], PathTextbox.Text + "/" + data_file[1]);
-                        }
-                        else
-                        {
-                            archive = new CMFFile(data_file[0]);
-                            archive.Closed += Archive_Closed;
-                            archive.BeginRead();
-                            archive.ExtractEntry(this.archive[data_file[1]], PathTextbox.Text + "/" + data_file[1]);
-                        }
-                        predata_file = data_file[0];
-                        ShowProcessingText.AppendText((data_file[1] + "......finished" + System.Environment.NewLine));
-                        processbar_processing();
-                        System.Threading.Thread.Sleep(10);                    }
-                }
-            }
-        }
+                string destFolder = PathTextbox.Text;
 
-        private void Archive_Closed(object sender, EventArgs e)
-        {
-            archive = null;
+                await Task.Run(() =>
+                {
+                    if (cmf_motion == "Unpacking")
+                    {
+                        foreach (string output_file in Unpack_file)
+                        {
+                            try
+                            {
+                                using (var localArchive = new CMFFile(output_file))
+                                {
+                                    localArchive.BeginRead();
+                                    for (int i = 0; i < localArchive.FileCount; i++)
+                                    {
+                                        var entry = localArchive.Entries[i];
+                                        string fileName = new Classes.File(entry).Name;
+                                        string targetPath = Path.Combine(destFolder, fileName);
+
+                                        var dirName = Path.GetDirectoryName(targetPath);
+                                        if (!string.IsNullOrEmpty(dirName))
+                                        {
+                                            Directory.CreateDirectory(dirName);
+                                        }
+
+                                        localArchive.ExtractEntry(entry, targetPath);
+
+                                        Application.Current.Dispatcher.Invoke(() =>
+                                        {
+                                            ShowProcessingText.AppendText(fileName + "......finished" + Environment.NewLine);
+                                            ShowProcessingText.ScrollToEnd();
+                                        });
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    MessageBox.Show(this, $"Error extracting archive '{output_file}':\n" + ex.Message, "Error");
+                                });
+                            }
+
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                processbar_processing();
+                            });
+                        }
+                    }
+                    else if (cmf_motion == "UnpackingSelect")
+                    {
+                        CMFFile localArchive = null;
+                        string predata_file = "";
+                        try
+                        {
+                            foreach (string output_file in Unpack_file)
+                            {
+                                string[] data_file = output_file.Split(',');
+                                string cmfPath = data_file[0];
+                                string entryName = data_file[1];
+
+                                if (cmfPath != predata_file)
+                                {
+                                    if (localArchive != null)
+                                    {
+                                        localArchive.Dispose();
+                                    }
+                                    localArchive = new CMFFile(cmfPath);
+                                    localArchive.BeginRead();
+                                }
+                                predata_file = cmfPath;
+
+                                var entry = localArchive[entryName];
+                                if (entry != null)
+                                {
+                                    string targetPath = Path.Combine(destFolder, entryName);
+                                    var dirName = Path.GetDirectoryName(targetPath);
+                                    if (!string.IsNullOrEmpty(dirName))
+                                    {
+                                        Directory.CreateDirectory(dirName);
+                                    }
+
+                                    localArchive.ExtractEntry(entry, targetPath);
+
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        ShowProcessingText.AppendText(entryName + "......finished" + Environment.NewLine);
+                                        ShowProcessingText.ScrollToEnd();
+                                    });
+                                }
+
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    processbar_processing();
+                                });
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                MessageBox.Show(this, "Error during selective extraction:\n" + ex.Message, "Error");
+                            });
+                        }
+                        finally
+                        {
+                            if (localArchive != null)
+                            {
+                                localArchive.Dispose();
+                            }
+                        }
+                    }
+                });
+
+                Close_btn.IsEnabled = true;
+            }
         }
 
         public void processbar_processing()

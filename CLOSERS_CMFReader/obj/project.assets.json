@@ -1,9 +1,10 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
-    ".NETCoreApp,Version=v3.1": {
+    "netcoreapp3.1": {
       "CMF-Sharp/1.0.0": {
         "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
         "compile": {
           "bin/placeholder/CMF-Sharp.dll": {}
         },
@@ -21,42 +22,38 @@
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v3.1": [
+    "netcoreapp3.1": [
       "CMF-Sharp >= 1.0.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ZHE_MING\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "C:\\Users\\GitmeRiz\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ZHE_MING\\Documents\\Github\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\CLOSERS_CMFReader.csproj",
+      "projectUniqueName": "D:\\Code\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\CLOSERS_CMFReader.csproj",
       "projectName": "CLOSERS_CMFReader",
-      "projectPath": "C:\\Users\\ZHE_MING\\Documents\\Github\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\CLOSERS_CMFReader.csproj",
-      "packagesPath": "C:\\Users\\ZHE_MING\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ZHE_MING\\Documents\\Github\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\obj\\",
+      "projectPath": "D:\\Code\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\CLOSERS_CMFReader.csproj",
+      "packagesPath": "C:\\Users\\GitmeRiz\\.nuget\\packages\\",
+      "outputPath": "D:\\Code\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "C:\\Users\\ZHE_MING\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\GitmeRiz\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp3.1"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "framework": "netcoreapp3.1",
+          "targetAlias": "netcoreapp3.1",
           "projectReferences": {
-            "C:\\Users\\ZHE_MING\\Documents\\Github\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
-              "projectPath": "C:\\Users\\ZHE_MING\\Documents\\Github\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj"
+            "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
+              "projectPath": "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj"
             }
           }
         }
@@ -65,20 +62,47 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "netcoreapp3.1": {
+        "framework": "netcoreapp3.1",
+        "targetAlias": "netcoreapp3.1",
         "imports": [
           "net461",
           "net462",
           "net47",
           "net471",
           "net472",
-          "net48"
+          "net48",
+          "net481"
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[3.1.10, 3.1.10]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[3.1.32, 3.1.32]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[3.1.0, 3.1.0]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[3.1.0, 3.1.0]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
@@ -87,7 +111,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300\\RuntimeIdentifierGraph.json"
       }
     }
   }

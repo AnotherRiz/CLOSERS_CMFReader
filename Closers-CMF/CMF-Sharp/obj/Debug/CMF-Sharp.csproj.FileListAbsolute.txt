@@ -58,3 +58,6 @@ C:\Users\ZHE_MING\Documents\Github\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\D
 C:\Users\ZHE_MING\Documents\Github\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\Debug\CMF-Sharp.csproj.CoreCompileInputs.cache
 C:\Users\ZHE_MING\Documents\Github\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\Debug\CMF-Sharp.dll
 C:\Users\ZHE_MING\Documents\Github\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\Debug\CMF-Sharp.pdb
+d:\Code\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\bin\Debug\CMF-Sharp.xml
+d:\Code\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\Debug\CMF-Sharp.dll
+d:\Code\CLOSERS_CMFReader\Closers-CMF\CMF-Sharp\obj\Debug\CMF-Sharp.pdb

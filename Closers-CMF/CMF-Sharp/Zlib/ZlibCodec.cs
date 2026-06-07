@@ -66,6 +66,7 @@
 using System;
 using System.IO.Compression;
 using Leayal.Closers.CMF;
+using CompressionLevel = Leayal.Closers.CMF.CompressionLevel;
 
 namespace SharpCompress.Compressors.Deflate
 {

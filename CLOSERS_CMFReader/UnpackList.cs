@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,5 +10,6 @@ namespace CLOSERS_CMFReader
             public string Name { get; set; }
             public string Size { get; set; }
             public string Type { get; set; }
+            public long RawSize { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -67,79 +67,129 @@ namespace CLOSERS_CMFReader
             //OutputWindows.Show();
         }
 
-        private void ReadCMF_btn_Click(object sender, RoutedEventArgs e)
+        private async void ReadCMF_btn_Click(object sender, RoutedEventArgs e)
         {
-            ReadCMF_btn.IsEnabled = false;
-            UnpackCMF_btn.IsEnabled = true;
-            UnpackCMFRecord_btn.IsEnabled = true;
-            OpenFileDialog ReadCMF = new OpenFileDialog();
-            ReadCMF.Title = "Select a file to open";
-            ReadCMF.RestoreDirectory = true;
-            ReadCMF.DefaultExt = "cmf";
-            ReadCMF.CheckPathExists = true;
-            ReadCMF.CheckFileExists = true;
-            ReadCMF.Filter = "Closers CMF|*.cmf";
-            ReadCMF.Multiselect = true;
+            OpenFileDialog ReadCMF = new OpenFileDialog
+            {
+                Title = "Select a file to open",
+                RestoreDirectory = true,
+                DefaultExt = "cmf",
+                CheckPathExists = true,
+                CheckFileExists = true,
+                Filter = "Closers CMF|*.cmf",
+                Multiselect = true
+            };
+
             if (ReadCMF.ShowDialog() == true)
             {
-                ShowOutputWin OutputWindows = new ShowOutputWin(motion, CMF_files, ReadCMF.FileNames.Count());
-                OutputWindows.Show();
-                foreach (string strFilename in ReadCMF.FileNames)
+                await LoadCMFFilesAsync(ReadCMF.FileNames);
+            }
+        }
+
+        private async void ReadFolder_btn_Click(object sender, RoutedEventArgs e)
+        {
+            using (var folderBrowse = new WinForms.WpfFolderBrowserDialogEx { Title = "Select folder to scan CMF files" })
+            {
+                if (folderBrowse.ShowDialog(this) == true)
                 {
-                    CMF_files.Add(strFilename);
-                    Unpacking_file = strFilename;
-                    OpenArchive(strFilename);
-                    System.Threading.Thread.Sleep(10);
-                    OutputWindows.processbar_processing();
+                    string selectedPath = folderBrowse.FileName;
+                    if (Directory.Exists(selectedPath))
+                    {
+                        var cmfFiles = await Task.Run(() => 
+                            Directory.GetFiles(selectedPath, "*.cmf", SearchOption.AllDirectories)
+                        );
+
+                        if (cmfFiles.Length == 0)
+                        {
+                            MessageBox.Show(this, "No .cmf files found in the selected folder.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                            return;
+                        }
+
+                        await LoadCMFFilesAsync(cmfFiles);
+                    }
                 }
-                OutputWindows.Close();
             }
         }
 
-        private void OpenArchive(string file_path)
+        private async Task LoadCMFFilesAsync(IEnumerable<string> filePaths)
         {
-            CloseArchive();
-            archive = new CMFFile(file_path);
-            archive.Ready += Archive_Ready;
-            archive.Closed += Archive_Closed;
-            try
-            {
-                archive.BeginRead();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Error while opening '{archive.Filename}'\n" + ex.ToString(), "Error");
-                archive = null;
-            }
-        }
+            ReadCMF_btn.IsEnabled = false;
+            ReadFolder_btn.IsEnabled = false;
+            UnpackCMF_btn.IsEnabled = true;
+            UnpackCMFRecord_btn.IsEnabled = true;
 
-        private void CloseArchive()
-        {
-            if (archive != null)
+            var filesList = filePaths.ToList();
+            if (filesList.Count == 0)
             {
-                archive.Dispose();
-                archive = null;
+                ReadCMF_btn.IsEnabled = true;
+                ReadFolder_btn.IsEnabled = true;
+                return;
             }
-        }
 
-        private void Archive_Ready(object sender, EventArgs e)
-        {
-            for (int i = 0; i < archive.FileCount; i++)
+            ShowOutputWin OutputWindows = new ShowOutputWin("Read", CMF_files, filesList.Count);
+            OutputWindows.Show();
+
+            var newItems = await Task.Run(() =>
             {
-                items.Add(new UnpackList()
+                var tempItems = new List<UnpackList>();
+                foreach (string strFilename in filesList)
                 {
-                    File = Unpacking_file,
-                    Name = new Classes.File(archive.Entries[i]).Name,
-                    Size = new Classes.File(archive.Entries[i]).SizeInString,
-                    Type = new Classes.File(archive.Entries[i]).Type
-                });
-            }
+                    try
+                    {
+                        using (var tempArchive = new CMFFile(strFilename))
+                        {
+                            tempArchive.BeginRead();
+                            for (int i = 0; i < tempArchive.FileCount; i++)
+                            {
+                                var entry = tempArchive.Entries[i];
+                                var fileHelper = new Classes.File(entry);
+                                tempItems.Add(new UnpackList()
+                                {
+                                    File = strFilename,
+                                    Name = fileHelper.Name,
+                                    Size = fileHelper.SizeInString,
+                                    Type = fileHelper.Type,
+                                    RawSize = fileHelper.Size ?? 0
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(this, $"Error while opening '{strFilename}'\n" + ex.ToString(), "Error");
+                        });
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        OutputWindows.processbar_processing();
+                    });
+                }
+                return tempItems;
+            });
+
+            CMF_files.AddRange(filesList);
+            items.AddRange(newItems);
             CMFList_Update();
+            UpdateTotalSize();
+
+            OutputWindows.Close();
+            ReadCMF_btn.IsEnabled = true;
+            ReadFolder_btn.IsEnabled = true;
         }
 
-        private void Archive_Closed(object sender, EventArgs e)
+        private void UpdateTotalSize()
         {
-            archive = null;
+            long totalBytes = 0;
+            foreach (var item in items)
+            {
+                totalBytes += item.RawSize;
+            }
+
+            var byteSizeHelper = new ByteSize(totalBytes);
+            TotalSizeLabel.Content = $"Total Extracted Size: {byteSizeHelper.ToString()}";
         }
 
         void CMFList_Update()
@@ -152,11 +202,14 @@ namespace CLOSERS_CMFReader
         {
             archive = null;
             CMF_files.Clear();
+            items.Clear();
             ReadCMF_btn.IsEnabled = true;
+            ReadFolder_btn.IsEnabled = true;
             UnpackCMF_btn.IsEnabled = false;
             UnpackCMFRecord_btn.IsEnabled = false;
             CMFListView.ItemsSource = null;
             Unpacking_file = "";
+            UpdateTotalSize();
         }
 
         private void UnpackCMFRecord_btn_Click(object sender, RoutedEventArgs e)

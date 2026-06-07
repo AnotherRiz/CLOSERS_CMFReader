@@ -1,4 +1,4 @@
-﻿using Leayal.Closers.CMF.Helper;
+using Leayal.Closers.CMF.Helper;
 using SharpCompress.Compressors.Deflate;
 using System;
 using System.Collections;
@@ -70,7 +70,7 @@ namespace Leayal.Closers.CMF
             if (this._disposed)
                 throw new System.ObjectDisposedException("Reader");
 
-            long entrydataoffset = this.Entry.dataoffset + this.dataoffsetStart;
+            long entrydataoffset = this.Entry.dataoffset + this.dataoffsetStart + this.sourceArchive.versionShift;
             this.sourceArchive.BaseStream.Seek(entrydataoffset, SeekOrigin.Begin);
             if (!CmfFormat.IsEncryptedFile(this.Entry.FileName) && this.Entry.IsCompressed)
             {
@@ -142,22 +142,47 @@ namespace Leayal.Closers.CMF
                 {
                     this.myEntry.headeroffset = (int)this.currentPos;
                     // Decode the buffer.
-                    CmfHelper.Decode(ref this.buffer);
+                    CmfHelper.Decode(ref this.buffer, this.sourceArchive.entryKey1, this.sourceArchive.entryKey2, this.sourceArchive.entryKey3);
 
-                    // First 512 bytes is the filename
-                    string tmp_filename = Encoding.ASCII.GetString(this.buffer, 0, CmfFormat.FileHeaderNameSize);
-
-                    // This doesn't look good.
-                    int indexofNull = tmp_filename.IndexOf("\0\0");
-                    if (tmp_filename.IndexOf("\0\0") == -1)
+                    int indexofNull = -1;
+                    for (int j = 0; j < CmfFormat.FileHeaderNameSize - 1; j += 2)
                     {
-                        indexofNull = tmp_filename.LastIndexOf('\0');
-                        tmp_filename = Encoding.ASCII.GetString(this.buffer, 0, indexofNull);
+                        if (this.buffer[j] == 0 && this.buffer[j + 1] == 0)
+                        {
+                            indexofNull = j;
+                            break;
+                        }
+                    }
+
+                    if (indexofNull != -1)
+                    {
+                        this.myEntry._filename = Encoding.Unicode.GetString(this.buffer, 0, indexofNull);
                     }
                     else
-                        this.myEntry._filename = Encoding.Unicode.GetString(this.buffer, 0, indexofNull + 1);
+                    {
+                        int asciiNull = -1;
+                        for (int j = 0; j < CmfFormat.FileHeaderNameSize; j++)
+                        {
+                            if (this.buffer[j] == 0)
+                            {
+                                asciiNull = j;
+                                break;
+                            }
+                        }
+                        if (asciiNull == -1)
+                        {
+                            this.myEntry._filename = Encoding.ASCII.GetString(this.buffer, 0, CmfFormat.FileHeaderNameSize);
+                        }
+                        else
+                        {
+                            this.myEntry._filename = Encoding.ASCII.GetString(this.buffer, 0, asciiNull);
+                        }
+                    }
 
-                    this.myEntry._filename = this.myEntry._filename.RemoveNullChar();
+                    if (this.myEntry._filename != null)
+                    {
+                        this.myEntry._filename = this.myEntry._filename.RemoveNullChar();
+                    }
 
                     // Next is 4 bytes for the unpacked size (aka original file)
                     this.myEntry._unpackedsize = BitConverter.ToInt32(this.buffer, 512);
