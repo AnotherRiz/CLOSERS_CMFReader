@@ -416,7 +416,7 @@ namespace Leayal.Closers.CMF
             {
                 // Let's extract encrypted content as raw data, too.
                 // Because I don't know how to decrypt.
-                using (Stream srcStream = new EntryStream(this.BaseStream, entrydataoffset, entry.UnpackedSize, true))
+                using (Stream srcStream = new EntryStream(this.BaseStream, entrydataoffset, entry.IsCompressed ? entry.CompressedSize : entry.UnpackedSize, true))
                 {
                     srcStream.CopyTo(outStream);
                     outStream.Flush();
