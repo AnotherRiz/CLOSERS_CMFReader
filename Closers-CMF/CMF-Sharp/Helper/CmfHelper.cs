@@ -1,8 +1,8 @@
-﻿namespace Leayal.Closers.CMF
+namespace Leayal.Closers.CMF
 {
     internal static class CmfHelper
     {
-        internal static void Decode(ref byte[] data)
+        internal static void Decode(ref byte[] data, int key1, int key2, int key3)
         {
             int tmp;
             unsafe
@@ -18,17 +18,17 @@
                         {
                             case 0:
                                 {
-                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ CmfFormat.EntryKey1);
+                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ key1);
                                     break;
                                 }
                             case 1:
                                 {
-                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ CmfFormat.EntryKey2);
+                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ key2);
                                     break;
                                 }
                             case 2:
                                 {
-                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ CmfFormat.EntryKey3);
+                                    num = ((0 | src[tmp] << 24 | src[tmp + 1] << 8 | src[tmp + 2] << 16 | src[tmp + 3]) ^ key3);
                                     break;
                                 }
                         }

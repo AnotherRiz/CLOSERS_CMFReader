@@ -4,14 +4,14 @@
     "d:\\Code\\CLOSERS_CMFReader\\CLOSERS_CMFReader\\CLOSERS_CMFReader.csproj": {}
   },
   "projects": {
-    "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
+    "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj",
+        "projectUniqueName": "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj",
         "projectName": "CMF-Sharp",
-        "projectPath": "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj",
+        "projectPath": "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj",
         "packagesPath": "C:\\Users\\GitmeRiz\\.nuget\\packages\\",
-        "outputPath": "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\obj\\",
+        "outputPath": "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\GitmeRiz\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -91,8 +91,8 @@
             "framework": "netcoreapp3.1",
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
-                "projectPath": "D:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj"
+              "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj": {
+                "projectPath": "d:\\Code\\CLOSERS_CMFReader\\Closers-CMF\\CMF-Sharp\\CMF-Sharp.csproj"
               }
             }
           }

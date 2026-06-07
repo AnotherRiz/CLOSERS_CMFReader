@@ -156,6 +156,84 @@
             Get the real size of entry's content before compressing.
             </summary>
         </member>
+        <member name="T:Leayal.Closers.CMF.CompressionLevel">
+            <summary>
+            The compression level to be used when using a DeflateStream or ZlibStream with CompressionMode.Compress.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.None">
+            <summary>
+            None means that the data will be simply stored, with no change at all.
+            If you are producing ZIPs for use on Mac OSX, be aware that archives produced with CompressionLevel.None
+            cannot be opened with the default zip reader. Use a different CompressionLevel.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level0">
+            <summary>
+            Same as None.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.BestSpeed">
+            <summary>
+            The fastest but least effective compression.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level1">
+            <summary>
+            A synonym for BestSpeed.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level2">
+            <summary>
+            A little slower, but better, than level 1.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level3">
+            <summary>
+            A little slower, but better, than level 2.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level4">
+            <summary>
+            A little slower, but better, than level 3.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level5">
+            <summary>
+            A little slower than level 4, but with better compression.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Default">
+            <summary>
+            The default compression level, with a good balance of speed and compression efficiency.   
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level6">
+            <summary>
+            A synonym for Default.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level7">
+            <summary>
+            Pretty good compression!
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level8">
+            <summary>
+             Better compression than Level7!
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.BestCompression">
+            <summary>
+            The "best" compression, where best means greatest reduction in size of the input data stream. 
+            This is also the slowest compression.
+            </summary>
+        </member>
+        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level9">
+            <summary>
+            A synonym for BestCompression.
+            </summary>
+        </member>
         <member name="T:Leayal.Closers.CMF.IEditor">
             <summary>
             Provide methods to edit the CMF file content. (Not thread-safe)
@@ -291,84 +369,6 @@
             Write the whole CMF archive with modified datas to a stream.
             </summary>
             <param name="outStream">The destination stream</param>
-        </member>
-        <member name="T:Leayal.Closers.CMF.CompressionLevel">
-            <summary>
-            The compression level to be used when using a DeflateStream or ZlibStream with CompressionMode.Compress.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.None">
-            <summary>
-            None means that the data will be simply stored, with no change at all.
-            If you are producing ZIPs for use on Mac OSX, be aware that archives produced with CompressionLevel.None
-            cannot be opened with the default zip reader. Use a different CompressionLevel.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level0">
-            <summary>
-            Same as None.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.BestSpeed">
-            <summary>
-            The fastest but least effective compression.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level1">
-            <summary>
-            A synonym for BestSpeed.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level2">
-            <summary>
-            A little slower, but better, than level 1.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level3">
-            <summary>
-            A little slower, but better, than level 2.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level4">
-            <summary>
-            A little slower, but better, than level 3.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level5">
-            <summary>
-            A little slower than level 4, but with better compression.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Default">
-            <summary>
-            The default compression level, with a good balance of speed and compression efficiency.   
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level6">
-            <summary>
-            A synonym for Default.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level7">
-            <summary>
-            Pretty good compression!
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level8">
-            <summary>
-             Better compression than Level7!
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.BestCompression">
-            <summary>
-            The "best" compression, where best means greatest reduction in size of the input data stream. 
-            This is also the slowest compression.
-            </summary>
-        </member>
-        <member name="F:Leayal.Closers.CMF.CompressionLevel.Level9">
-            <summary>
-            A synonym for BestCompression.
-            </summary>
         </member>
         <member name="T:Leayal.Closers.CMF.IReader">
             <summary>

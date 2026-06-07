@@ -16,7 +16,10 @@
       },
       "CMF-Sharp/1.0.0": {
         "runtime": {
-          "CMF-Sharp.dll": {}
+          "CMF-Sharp.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }

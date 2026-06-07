@@ -1,4 +1,4 @@
-﻿using SharpCompress.Compressors.Deflate;
+using SharpCompress.Compressors.Deflate;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -61,6 +61,10 @@ namespace Leayal.Closers.CMF
         internal ReadOnlyCollection<CMFEntry> entrylist;
         internal long dataoffsetStart;
         internal long headeroffsetStart;
+        internal int entryKey1;
+        internal int entryKey2;
+        internal int entryKey3;
+        internal int versionShift;
 
         /// <summary>
         /// The base stream which this archive instance used to open CMF file.
@@ -156,6 +160,68 @@ namespace Leayal.Closers.CMF
             this.headeroffsetStart = this.BaseStream.Position;
 
             this.dataoffsetStart = this.BaseStream.Position + (CmfFormat.FileHeaderSize * this.filecount);
+
+            string signatureStr = Encoding.Unicode.GetString(this._signature);
+            string asciiSignatureStr = Encoding.ASCII.GetString(this._signature);
+            if (signatureStr.Contains("ver.3") || signatureStr.Contains("ver.2") || signatureStr.Contains("ver. 1.0") ||
+                asciiSignatureStr.Contains("ver.3") || asciiSignatureStr.Contains("ver.2") || asciiSignatureStr.Contains("ver. 1.0"))
+            {
+                this.entryKey1 = CmfFormat.EntryKey1;
+                this.entryKey2 = CmfFormat.EntryKey2;
+                this.entryKey3 = CmfFormat.EntryKey3;
+            }
+            else
+            {
+                this.entryKey1 = CmfFormat.NewEntryKey1;
+                this.entryKey2 = CmfFormat.NewEntryKey2;
+                this.entryKey3 = CmfFormat.NewEntryKey3;
+            }
+
+            this.versionShift = GetVersionShift(this._signature);
+        }
+
+        private static int GetVersionShift(byte[] signature)
+        {
+            string signatureStr = Encoding.Unicode.GetString(signature);
+            string asciiSignatureStr = Encoding.ASCII.GetString(signature);
+
+            string target = null;
+            int verIndex = signatureStr.IndexOf("ver.", StringComparison.Ordinal);
+            if (verIndex > -1)
+            {
+                target = signatureStr;
+            }
+            else
+            {
+                verIndex = asciiSignatureStr.IndexOf("ver.", StringComparison.Ordinal);
+                if (verIndex > -1)
+                {
+                    target = asciiSignatureStr;
+                }
+            }
+
+            if (target != null && verIndex > -1)
+            {
+                int start = verIndex + 4;
+                int end = start;
+                while (end < target.Length && (char.IsDigit(target[end]) || target[end] == '.' || target[end] == ' '))
+                {
+                    end++;
+                }
+                string verStr = target.Substring(start, end - start).Trim();
+                if (verStr == "1.0")
+                {
+                    return 0;
+                }
+                if (int.TryParse(verStr, out int v))
+                {
+                    if (v <= 2)
+                        return 0;
+                    else
+                        return v;
+                }
+            }
+            return 0;
         }
 
         private ReadOnlyCollection<CMFEntry> ReadEntryList()
@@ -168,14 +234,12 @@ namespace Leayal.Closers.CMF
             // CmfFormat.FileHeaderSize
 
             CMFEntry[] entryList = new CMFEntry[this.filecount];
-            string tmp_filename;
             byte[] bytebuffer = new byte[CmfFormat.FileHeaderSize];
             int readcount, indexofNull;
             int offset = (int)this.BaseStream.Position;
             CMFEntry currentCMFEntry;
             for (int i = 0; i < entryList.Length; i++)
             {
-                tmp_filename = null;
                 currentCMFEntry = new CMFEntry();
 
                 readcount = this.binaryReader.Read(bytebuffer, 0, bytebuffer.Length);
@@ -183,22 +247,47 @@ namespace Leayal.Closers.CMF
                 {
                     currentCMFEntry.headeroffset = offset;
                     // Decode the buffer.
-                    CmfHelper.Decode(ref bytebuffer);
+                    CmfHelper.Decode(ref bytebuffer, this.entryKey1, this.entryKey2, this.entryKey3);
 
-                    // First 512 bytes is the filename
-                    tmp_filename = Encoding.ASCII.GetString(bytebuffer, 0, CmfFormat.FileHeaderNameSize);
-
-                    // This doesn't look good.
-                    indexofNull = tmp_filename.IndexOf("\0\0");
-                    if (tmp_filename.IndexOf("\0\0") == -1)
+                    indexofNull = -1;
+                    for (int j = 0; j < CmfFormat.FileHeaderNameSize - 1; j += 2)
                     {
-                        indexofNull = tmp_filename.LastIndexOf('\0');
-                        tmp_filename = Encoding.ASCII.GetString(bytebuffer, 0, indexofNull);
+                        if (bytebuffer[j] == 0 && bytebuffer[j + 1] == 0)
+                        {
+                            indexofNull = j;
+                            break;
+                        }
+                    }
+
+                    if (indexofNull != -1)
+                    {
+                        currentCMFEntry._filename = Encoding.Unicode.GetString(bytebuffer, 0, indexofNull);
                     }
                     else
-                        currentCMFEntry._filename = Encoding.Unicode.GetString(bytebuffer, 0, indexofNull + 1);
+                    {
+                        int asciiNull = -1;
+                        for (int j = 0; j < CmfFormat.FileHeaderNameSize; j++)
+                        {
+                            if (bytebuffer[j] == 0)
+                            {
+                                asciiNull = j;
+                                break;
+                            }
+                        }
+                        if (asciiNull == -1)
+                        {
+                            currentCMFEntry._filename = Encoding.ASCII.GetString(bytebuffer, 0, CmfFormat.FileHeaderNameSize);
+                        }
+                        else
+                        {
+                            currentCMFEntry._filename = Encoding.ASCII.GetString(bytebuffer, 0, asciiNull);
+                        }
+                    }
 
-                    currentCMFEntry._filename = currentCMFEntry._filename.RemoveNullChar();
+                    if (currentCMFEntry._filename != null)
+                    {
+                        currentCMFEntry._filename = currentCMFEntry._filename.RemoveNullChar();
+                    }
 
                     // Next is 4 bytes for the unpacked size (aka original file)
                     currentCMFEntry._unpackedsize = BitConverter.ToInt32(bytebuffer, 512);
@@ -311,7 +400,7 @@ namespace Leayal.Closers.CMF
             if (!outStream.CanWrite)
                 throw new InvalidOperationException("The stream should be writable.");
 
-            long entrydataoffset = entry.dataoffset + this.dataoffsetStart;
+            long entrydataoffset = entry.dataoffset + this.dataoffsetStart + this.versionShift;
 
             this.BaseStream.Seek(entrydataoffset, SeekOrigin.Begin);
 

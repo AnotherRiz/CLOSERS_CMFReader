@@ -1,4 +1,4 @@
-﻿using SharpCompress.Compressors.Deflate;
+using SharpCompress.Compressors.Deflate;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -290,7 +290,7 @@ namespace Leayal.Closers.CMF
                 entrydata = this.datadictionary.First();
                 if (this.myArchive.Entries.IndexOf(entrydata.Key) > -1)
                 {
-                    this.myArchive.BaseStream.Seek(entrydata.Key.dataoffset, SeekOrigin.Begin);
+                    this.myArchive.BaseStream.Seek(entrydata.Key.dataoffset + this.myArchive.dataoffsetStart + this.myArchive.versionShift, SeekOrigin.Begin);
                     CopyStream(entrydata.Value, this.myArchive.BaseStream, ref this.myultimatebuffer);
 
                     if (entrydata.Value.Length < entrydata.Key.CompressedSize)
@@ -341,7 +341,7 @@ namespace Leayal.Closers.CMF
 
             // Copy header
             this.myArchive.BaseStream.Seek(0, SeekOrigin.Begin);
-            using (EntryStream stream = new EntryStream(this.myArchive.BaseStream, 0, this.myArchive.dataoffsetStart, true))
+            using (EntryStream stream = new EntryStream(this.myArchive.BaseStream, 0, this.myArchive.dataoffsetStart + this.myArchive.versionShift, true))
                 stream.CopyTo(outStream);
 
             // Write entry's content
@@ -368,8 +368,9 @@ namespace Leayal.Closers.CMF
                 }
                 else
                 {
-                    this.myArchive.BaseStream.Seek(entry.dataoffset + this.myArchive.dataoffsetStart, SeekOrigin.Begin);
-                    using (EntryStream stream = new EntryStream(this.myArchive.BaseStream, entry.dataoffset, entry.CompressedSize, true))
+                    long absoluteOffset = entry.dataoffset + this.myArchive.dataoffsetStart + this.myArchive.versionShift;
+                    this.myArchive.BaseStream.Seek(absoluteOffset, SeekOrigin.Begin);
+                    using (EntryStream stream = new EntryStream(this.myArchive.BaseStream, absoluteOffset, entry.CompressedSize, true))
                         CopyStream(stream, outStream, ref this.myultimatebuffer);
                 }
             }

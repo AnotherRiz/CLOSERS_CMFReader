@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 namespace Leayal.Closers.CMF
 {
@@ -7,6 +7,10 @@ namespace Leayal.Closers.CMF
         public const int EntryKey1 = -1399622946;
         public const int EntryKey2 = -2073448703;
         public const int EntryKey3 = -600218993;
+
+        public const int NewEntryKey1 = 1606171161;
+        public const int NewEntryKey2 = 764318902;
+        public const int NewEntryKey3 = -512594877;
 
         public const int FileHeaderSize = 528;
         public const int FileHeaderNameSize = 512;
