@@ -14,6 +14,8 @@ using CLOSERS_CMFReader.WinForms;
 using CLOSERS_CMFReader.Classes;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Windows.Threading;
 using Path = System.IO.Path;
 
 namespace CLOSERS_CMFReader
@@ -27,13 +29,22 @@ namespace CLOSERS_CMFReader
         private List<string> UnpackSelect_file = new List<string>();
         private string cmf_motion;
 
+        private int totalFiles = 0;
+        private int filesProcessed = 0;
+        private ConcurrentQueue<string> logQueue = new ConcurrentQueue<string>();
+        private DispatcherTimer uiTimer;
+
         public ShowOutputWin(string motion, List<string> CMF_files, int Datanum)
         {
             InitializeComponent();
             Unpack_file = CMF_files;
             cmf_motion = motion;
-            progressbar_motion.Minimum = 1;
+            progressbar_motion.Minimum = 0;
             progressbar_motion.Maximum = Datanum;
+            progressbar_motion.Value = 0;
+            totalFiles = Datanum;
+            filesProcessed = 0;
+            UpdateProgressText();
             if (motion == "Read")
             {
                 Cancle_btn.IsEnabled = false;
@@ -92,6 +103,13 @@ namespace CLOSERS_CMFReader
             {
                 string destFolder = PathTextbox.Text;
 
+                progressbar_motion.Minimum = 0;
+                progressbar_motion.Maximum = totalFiles;
+                progressbar_motion.Value = 0;
+                filesProcessed = 0;
+
+                StartProgressTimer();
+
                 await Task.Run(() =>
                 {
                     if (cmf_motion == "Unpacking")
@@ -117,11 +135,8 @@ namespace CLOSERS_CMFReader
 
                                         localArchive.ExtractEntry(entry, targetPath);
 
-                                        Application.Current.Dispatcher.Invoke(() =>
-                                        {
-                                            ShowProcessingText.AppendText(fileName + "......finished" + Environment.NewLine);
-                                            ShowProcessingText.ScrollToEnd();
-                                        });
+                                        logQueue.Enqueue(fileName);
+                                        System.Threading.Interlocked.Increment(ref filesProcessed);
                                     }
                                 }
                             }
@@ -132,11 +147,6 @@ namespace CLOSERS_CMFReader
                                     MessageBox.Show(this, $"Error extracting archive '{output_file}':\n" + ex.Message, "Error");
                                 });
                             }
-
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                processbar_processing();
-                            });
                         }
                     }
                     else if (cmf_motion == "UnpackingSelect")
@@ -174,17 +184,10 @@ namespace CLOSERS_CMFReader
 
                                     localArchive.ExtractEntry(entry, targetPath);
 
-                                    Application.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        ShowProcessingText.AppendText(entryName + "......finished" + Environment.NewLine);
-                                        ShowProcessingText.ScrollToEnd();
-                                    });
+                                    logQueue.Enqueue(entryName);
                                 }
 
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    processbar_processing();
-                                });
+                                System.Threading.Interlocked.Increment(ref filesProcessed);
                             }
                         }
                         catch (Exception ex)
@@ -204,13 +207,72 @@ namespace CLOSERS_CMFReader
                     }
                 });
 
+                StopProgressTimer();
                 Close_btn.IsEnabled = true;
             }
         }
 
         public void processbar_processing()
         {
-            progressbar_motion.Value++;
+            filesProcessed++;
+            progressbar_motion.Value = filesProcessed;
+            UpdateProgressText();
+        }
+
+        private void StartProgressTimer()
+        {
+            uiTimer = new DispatcherTimer();
+            uiTimer.Interval = TimeSpan.FromMilliseconds(100);
+            uiTimer.Tick += UiTimer_Tick;
+            uiTimer.Start();
+        }
+
+        private void StopProgressTimer()
+        {
+            if (uiTimer != null)
+            {
+                uiTimer.Stop();
+                uiTimer = null;
+            }
+            FlushProgress();
+        }
+
+        private void UiTimer_Tick(object sender, EventArgs e)
+        {
+            FlushProgress();
+        }
+
+        private void FlushProgress()
+        {
+            progressbar_motion.Value = filesProcessed;
+            UpdateProgressText();
+
+            if (!logQueue.IsEmpty)
+            {
+                StringBuilder sb = new StringBuilder();
+                while (logQueue.TryDequeue(out string logLine))
+                {
+                    sb.AppendLine(logLine + "......finished");
+                }
+
+                if (sb.Length > 0)
+                {
+                    ShowProcessingText.AppendText(sb.ToString());
+                    ShowProcessingText.ScrollToEnd();
+
+                    while (ShowProcessingText.Document.Blocks.Count > 500)
+                    {
+                        ShowProcessingText.Document.Blocks.Remove(ShowProcessingText.Document.Blocks.FirstBlock);
+                    }
+                }
+            }
+        }
+
+        private void UpdateProgressText()
+        {
+            double percentage = totalFiles > 0 ? ((double)filesProcessed / totalFiles) * 100 : 0;
+            int filesLeft = Math.Max(0, totalFiles - filesProcessed);
+            ProcessingLabel.Content = $"Processing: {percentage:0}% ({filesProcessed} file done, {filesLeft} file left)";
         }
     }
 }
